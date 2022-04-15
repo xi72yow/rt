@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Test</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style></style>
+    <script src="https://unpkg.com/konva@8/konva.min.js"></script>
+  </head>
+  <body>
+    <div id="container"></div>
+    <script>
+      var Width = 500;
+      var Height = 500;
+      var minX = -50;
+      var maxX = 50;
+      var minY = -50;
+      var maxY = 50;
+      var rangeX = maxX - minX;
+      var rangeY = maxY - minY;
+      var scaleX = Width / rangeX;
+      var scaleY = Height / rangeY;
+
+      var stage = new Konva.Stage({
+        container: "container",
+        width: Width,
+        height: Height,
+        scaleX: scaleX,
+        scaleY: scaleY,
+        offset: {
+          x: minX,
+          y: minY,
+        },
+      });
+
+      var layer = new Konva.Layer();
+      stage.add(layer);
+
+      var rect = new Konva.Rect({
+        x: minX,
+        y: minY,
+        width: Math.abs(minX) + Math.abs(maxX),
+        height: Math.abs(minY) + Math.abs(maxY),
+
+        stroke: "black",
+        strokeWidth: 0.1,
+      });
+      layer.add(rect);
+
+      var position = new Konva.Text({
+        fontSize: 0.7,
+        x: -11,
+        y: -11,
+      });
+      layer.add(position);
+
+      var yaxis = new Konva.Arrow({
+        points: [0, maxY * 0.9, 0, minY * 0.9],
+        pointerLength: 0.3,
+        pointerWidth: 0.2,
+        pointerAtBeginning: true,
+        fill: "black",
+        stroke: "black",
+        strokeWidth: 0.1,
+      });
+      layer.add(yaxis);
+
+      var xaxis = new Konva.Arrow({
+        points: [maxX * 0.9, 0, minX * 0.9, 0],
+        pointerLength: 0.3,
+        pointerWidth: 0.2,
+        pointerAtBeginning: true,
+        fill: "black",
+        stroke: "black",
+        strokeWidth: 0.1,
+      });
+      layer.add(xaxis);
+
+      layer.draw();
+
+      let K1 = 5;
+      let T1 = 1;
+      let T2 = 1;
+      let Tn = 3.5;
+      let D = 0.4;
+
+      let TD = 9;
+      let w = 0;
+      let speed = 0.01;
+      let Tt = 4;
+
+      let endPoint = {
+        x: K1,
+        y: 0,
+      };
+      var pointer = new Konva.Arrow({
+        points: [0, 0, endPoint.x, endPoint.y],
+        pointerLength: 0.2,
+        pointerWidth: 0.1,
+        fill: "black",
+        stroke: "black",
+        strokeWidth: 0.1,
+      });
+      layer.add(pointer);
+
+      var redLine = new Konva.Line({
+        points: [],
+        stroke: "red",
+        strokeWidth: 0.2,
+        lineCap: "round",
+        lineJoin: "round",
+      });
+      layer.add(redLine);
+
+      var anim = new Konva.Animation(function (frame) {
+        var time = frame.time,
+          timeDiff = frame.timeDiff,
+          frameRate = frame.frameRate;
+        w += speed;
+        if (w > 5000) {
+          anim.stop();
+        }
+        const points = redLine.getPoints();
+
+        //PT1 ✓
+        endPoint.x = K1 / (1 + w * w * T1 * T1);
+        endPoint.y = (-w * T1 * K1) / (1 + w * w * T1 * T1);
+
+        //DPT1 ✓
+        endPoint.x = (K1 * TD * w ** 2 * T1) / (1 + T1 ** 2 * w ** 2);
+        endPoint.y = (K1 * TD * w) / (1 + T1 ** 2 * w ** 2);
+
+        //PT2ns ✓
+        endPoint.x =
+          (-K1 * (T1 * T2 * w ** 2 - 1)) /
+          (T1 ** 2 * T2 ** 2 * w ** 4 + (T1 ** 2 + T2 ** 2) * w ** 2 + 1);
+        endPoint.y =
+          (-K1 * (T1 + T2) * w) /
+          (T1 ** 2 * T2 ** 2 * w ** 4 + (T1 ** 2 + T2 ** 2) * w ** 2 + 1);
+
+        //PT1Tt ✓
+        //((PTTta K1 + PTTtb K1 w T1) / (1 + w² T1²), (-PTTta K1 w T1 + PTTtb K1) / (1 + w² T1²))
+        endPoint.x =
+          (Math.cos(-w * Tt) * K1 + Math.sin(-w * Tt) * K1 * w * T1) /
+          (1 + w ** 2 * T1 ** 2);
+        endPoint.y =
+          (-Math.cos(-w * Tt) * K1 * w * T1 + Math.sin(-w * Tt) * K1) /
+          (1 + w ** 2 * T1 ** 2);
+
+        //IPT1ns ✓
+        //(-T1 K1 / (Tn (T1² w² + 1)), -(K1 / (Tn w (T1² w² + 1))))
+        endPoint.x = (-T1 * K1) / (Tn * (T1 ** 2 * w ** 2 + 1));
+        endPoint.y = -(K1 / (Tn * w * (T1 ** 2 * w ** 2 + 1)));
+
+        //PT2s ✓
+        //((-(K1 (T1² w² - 1))) / (T1⁴ w⁴ + 2 (2D² - 1) T1² w² + 1), -2 D T1 w K1 / (T1⁴ w⁴ + 2 (D² - 1) T1² w² + 1))
+        endPoint.x =
+          -(K1 * (T1 ** 2 * w ** 2 - 1)) /
+          (T1 ** 4 * w ** 4 + 2 * (2 * D ** 2 - 1) * T1 ** 2 * w ** 2 + 1);
+        endPoint.y =
+          -(2 * D * T1 * K1 * w) /
+          (T1 ** 4 * w ** 4 + 2 * (2 * D ** 2 - 1) * T1 ** 2 * w ** 2 + 1);
+
+        //PT3ns ✓
+        //((-K1 ((T1 (T2 + Tn) + T2 Tn) w² - 1)) / ((Tn² w² + 1) (T2² w² + 1) (T1² w² + 1)), K1 w (T1 T2 Tn w² - T1 - T2 - Tn)) / ((Tn² w² + 1) (T2² w² + 1) (T1² w² + 1))
+        endPoint.x =
+          (-K1 * ((T1 * (T2 + Tn) + T2 * Tn) * w ** 2 - 1)) /
+          ((Tn ** 2 * w ** 2 + 1) *
+            (T2 ** 2 * w ** 2 + 1) *
+            (T1 ** 2 * w ** 2 + 1));
+
+        endPoint.y =
+          (K1 * w * (T1 * T2 * Tn * w ** 2 - T1 - T2 - Tn)) /
+          ((Tn ** 2 * w ** 2 + 1) *
+            (T2 ** 2 * w ** 2 + 1) *
+            (T1 ** 2 * w ** 2 + 1));
+
+        //IPT2ns ✓
+        //((-K1 Tn T1 w² - K1 Tn w² T2) / ((-Tn T1 w² - Tn w² T2)² - (-Tn T1 w³ T2 + Tn w) (Tn T1 w³ T2 - Tn w)), (K1 Tn T1 w³ T2 - K1 Tn w) / ((-Tn T1 w² - Tn w² T2)² - (-Tn T1 w³ T2 + Tn w) (Tn T1 w³ T2 - Tn w)))
+        endPoint.x =
+          (-K1 * Tn * T1 * w ** 2 - K1 * Tn * w ** 2 * T2) /
+          ((-Tn * T1 * w ** 2 - Tn * w ** 2 * T2) ** 2 -
+            (-Tn * T1 * w ** 3 * T2 + Tn * w) *
+              (Tn * T1 * w ** 3 * T2 - Tn * w));
+        endPoint.y =
+          (K1 * Tn * T1 * w ** 3 * T2 - K1 * Tn * w) /
+          ((-Tn * T1 * w ** 2 - Tn * w ** 2 * T2) ** 2 -
+            (-Tn * T1 * w ** 3 * T2 + Tn * w) *
+              (Tn * T1 * w ** 3 * T2 - Tn * w));
+
+        //I ✓
+        endPoint.x = 0;
+        endPoint.y = -K1 / w;
+
+        //D ✓
+        endPoint.x = 0;
+        endPoint.y = K1 * w;
+
+        //Tt ✓
+        endPoint.x = Math.cos(Tt * w);
+        endPoint.y = Math.sin(Tt * w);
+
+        endPoint.y = endPoint.y * -1; //flip y axis
+        let distance = Math.sqrt(
+          points[points.length - 2] * endPoint.x +
+            points[points.length - 1] * endPoint.y
+        );
+
+        if (redLine.getPoints().length === 0) {
+          distance = 10;
+        }
+
+        console.log(`Ⓧ: `, w);
+        if (distance > 1.2 && speed > 0) {
+          speed = speed - 0.000001;
+        }
+
+        if (distance < 0.8) {
+          speed += 0.0001; //+ 0.1 / distance; //scale speed by distance not for PT1Tt
+        }
+
+        if (redLine.getPoints().length > 10000 || distance < 0.015 || !distance)
+          return;
+
+        console.log(`ⓍDistance : `, distance);
+        console.log(`Ⓧ: `, redLine.getPoints().length);
+
+        pointer.setAttr("points", [0, 0, endPoint.x, endPoint.y]);
+        redLine.getPoints().push(endPoint.x, endPoint.y);
+        //redLine.setAttr("points", [0, 0, endPoint.x, endPoint.y]);
+
+        // update stuff
+      }, layer);
+
+      anim.start();
+
+      var zoomLevel = 5;
+      layer.on("mouseenter", function () {
+        layer.scale({
+          x: zoomLevel,
+          y: zoomLevel,
+        });
+      });
+
+      layer.on("mousemove", function (e) {
+        var pos = stage.getPointerPosition();
+        layer.x((-pos.x / Width) * scaleX);
+        layer.y((-pos.y / Height) * scaleY);
+      });
+
+      layer.on("wheel", function (e) {
+        zoomLevel = e.evt.deltaY < 0 ? zoomLevel + 0.1 : zoomLevel - 0.1;
+        layer.scale({
+          x: zoomLevel,
+          y: zoomLevel,
+        });
+      });
+
+      layer.on("mouseleave", function () {
+        layer.x(0);
+        layer.y(0);
+        layer.scale({
+          x: 1,
+          y: 1,
+        });
+      });
+
+      circle.on("dragmove", updateText);
+    </script>
+  </body>
+</html>
