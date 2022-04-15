@@ -9,6 +9,40 @@
   </head>
   <body>
     <div id="container"></div>
+
+    <button id="pt1">PT1</button>
+    <button id="pt2s">PT2s</button>
+    <button id="pt2ns">PT2ns</button>
+    <button id="ipt1ns">IPT1ns</button>
+    <button id="ipt2ns">IPT2ns</button>
+    <button id="i">I</button>
+    <button id="d">D</button>
+    <button id="dpt1">DPT1</button>
+    <button id="ptt">PTt</button>
+    <button id="pt3ns">PT3ns</button>
+    <button id="pt1tt">PT1Tt</button>
+
+    <label for="k1">K1</label>
+    <input id="k1" type="range" min="0" max="50" step="0.1" value="5" />
+
+    <label for="t1">T1</label>
+    <input id="t1" type="range" min="0" max="25" step="0.1" value="5" />
+
+    <label for="t2">T2</label>
+    <input id="t2" type="range" min="0" max="25" step="0.1" value="5" />
+
+    <label for="tn">Tn</label>
+    <input id="pt1" type="range" min="0" max="25" step="0.1" value="5" />
+
+    <label for="td">TD</label>
+    <input id="td" type="range" min="0" max="25" step="0.1" value="5" />
+
+    <label for="tt">Tt</label>
+    <input id="tt" type="range" min="0" max="25" step="0.1" value="5" />
+
+    <label for="d">D</label>
+    <input id="d" type="range" min="0" max="4" step="0.1" value="0.4" />
+
     <script>
       var Width = 500;
       var Height = 500;
@@ -78,16 +112,16 @@
 
       layer.draw();
 
-      let K1 = 5;
+      let K1 = 20;
       let T1 = 1;
       let T2 = 1;
       let Tn = 3.5;
       let D = 0.4;
-
       let TD = 9;
-      let w = 0;
-      let speed = 0.01;
       let Tt = 4;
+
+      let speed = 0.01;
+      let w = 0;
 
       let endPoint = {
         x: K1,
@@ -197,8 +231,8 @@
         endPoint.y = K1 * w;
 
         //Tt ✓
-        endPoint.x = Math.cos(Tt * w);
-        endPoint.y = Math.sin(Tt * w);
+        endPoint.x = K1 * Math.cos(Tt * w);
+        endPoint.y = K1 * Math.sin(Tt * w);
 
         endPoint.y = endPoint.y * -1; //flip y axis
         let distance = Math.sqrt(
@@ -210,7 +244,6 @@
           distance = 10;
         }
 
-        console.log(`Ⓧ: `, w);
         if (distance > 1.2 && speed > 0) {
           speed = speed - 0.000001;
         }
@@ -221,9 +254,6 @@
 
         if (redLine.getPoints().length > 10000 || distance < 0.015 || !distance)
           return;
-
-        console.log(`ⓍDistance : `, distance);
-        console.log(`Ⓧ: `, redLine.getPoints().length);
 
         pointer.setAttr("points", [0, 0, endPoint.x, endPoint.y]);
         redLine.getPoints().push(endPoint.x, endPoint.y);
@@ -244,8 +274,8 @@
 
       layer.on("mousemove", function (e) {
         var pos = stage.getPointerPosition();
-        layer.x((-pos.x / Width) * scaleX);
-        layer.y((-pos.y / Height) * scaleY);
+        layer.x((-pos.x / Width) * 50);
+        layer.y((-pos.y / Height) * 50);
       });
 
       layer.on("wheel", function (e) {
@@ -264,8 +294,6 @@
           y: 1,
         });
       });
-
-      circle.on("dragmove", updateText);
     </script>
   </body>
 </html>
