@@ -10,17 +10,40 @@
   <body>
     <div id="container"></div>
 
-    <button id="pt1">PT1</button>
-    <button id="pt2s">PT2s</button>
-    <button id="pt2ns">PT2ns</button>
-    <button id="ipt1ns">IPT1ns</button>
-    <button id="ipt2ns">IPT2ns</button>
-    <button id="i">I</button>
-    <button id="d">D</button>
-    <button id="dpt1">DPT1</button>
-    <button id="ptt">PTt</button>
-    <button id="pt3ns">PT3ns</button>
-    <button id="pt1tt">PT1Tt</button>
+    <form action="">
+      <label for="pt1">PT1</label>
+      <input id="pt1" type="radio" name="foo" value="0" />
+      <br />
+      <label for="pt2s">PT2s</label>
+      <input id="pt2s" type="radio" name="foo" value="1" />
+      <br />
+      <label for="pt2ns">PT2ns</label>
+      <input id="pt2ns" type="radio" name="foo" value="2" />
+      <br />
+      <label for="ipt1ns">IPT1ns</label>
+      <input id="ipt1ns" type="radio" name="foo" value="3" />
+      <br />
+      <label for="ipt2ns">IPT2ns</label>
+      <input id="ipt2ns" type="radio" name="foo" value="4" />
+      <br />
+      <label for="i">I</label>
+      <input id="i" type="radio" name="foo" value="5" />
+      <br />
+      <label for="d">D</label>
+      <input id="d" type="radio" name="foo" value="6" />
+      <br />
+      <label for="dpt1">DPT1</label>
+      <input id="dpt1" type="radio" name="foo" value="7" />
+      <br />
+      <label for="ptt">PTt</label>
+      <input id="ptt" type="radio" name="foo" value="8" />
+      <br />
+      <label for="pt3ns">PT3ns</label>
+      <input id="pt3ns" type="radio" name="foo" value="9" />
+      <br />
+      <label for="pt1tt">PT1Tt</label>
+      <input id="pt1tt" type="radio" name="foo" value="10" />
+    </form>
 
     <label for="k1">K1</label>
     <input id="k1" type="range" min="0" max="50" step="0.1" value="5" />
@@ -65,10 +88,18 @@
           x: minX,
           y: minY,
         },
+        draggable: true,
       });
 
       var layer = new Konva.Layer();
       stage.add(layer);
+
+      var gridLayer = new Konva.Layer({
+        draggable: false,
+        x: 0,
+        y: 0,
+      });
+      stage.add(gridLayer);
 
       var rect = new Konva.Rect({
         x: minX,
@@ -265,7 +296,16 @@
       anim.start();
 
       var zoomLevel = 5;
-      layer.on("mouseenter", function () {
+
+      layer.on("wheel", function (e) {
+        zoomLevel = e.evt.deltaY < 0 ? zoomLevel + 0.1 : zoomLevel - 0.1;
+        layer.scale({
+          x: zoomLevel,
+          y: zoomLevel,
+        });
+      });
+
+      /* layer.on("mouseenter", function () {
         layer.scale({
           x: zoomLevel,
           y: zoomLevel,
@@ -278,14 +318,6 @@
         layer.y((-pos.y / Height) * 50);
       });
 
-      layer.on("wheel", function (e) {
-        zoomLevel = e.evt.deltaY < 0 ? zoomLevel + 0.1 : zoomLevel - 0.1;
-        layer.scale({
-          x: zoomLevel,
-          y: zoomLevel,
-        });
-      });
-
       layer.on("mouseleave", function () {
         layer.x(0);
         layer.y(0);
@@ -293,7 +325,7 @@
           x: 1,
           y: 1,
         });
-      });
+      }); */
     </script>
   </body>
 </html>
