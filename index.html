@@ -6,13 +6,145 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style></style>
     <script src="https://unpkg.com/konva@8/konva.min.js"></script>
+    <script>
+      //set bool for radio buttons
+      const aktiveSystem = [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+      ];
+
+      let K1 = 20;
+      let T1 = 1;
+      let T2 = 1;
+      let Tn = 3.5;
+      let TD = 9;
+      let Tt = 4;
+      let D = 0.4;
+
+      const params = [20, 1, 1, 3.5, 9, 4, 0.4];
+      function setChoosen() {
+        var radios = document.querySelectorAll("input[type=radio]");
+
+        for (var i = 0; i < radios.length; i++) {
+          aktiveSystem[i] = radios[i].checked;
+        }
+
+        console.log(
+          `Ⓧ: `,
+          aktiveSystem.findIndex(function (el) {
+            return el === true;
+          })
+        );
+        w = 0;
+        redLine.getPoints().length = 0;
+        speed = 0.01;
+      }
+      function setParam() {
+        var radios = document.querySelectorAll("input[type=range]");
+
+        for (var i = 0; i < radios.length; i++) {
+          params[i] = radios[i].value;
+        }
+
+        console.log(
+          `Ⓧ: `,
+          aktiveSystem.findIndex(function (el) {
+            return el === true;
+          })
+        );
+        w = 0;
+        redLine.getPoints().length = 0;
+        speed = 0.001;
+      }
+
+      function getABS2DVektor(arrow) {
+        let punkte = arrow.getPoints();
+
+        let vektor = {
+          x: punkte[2] - punkte[0],
+          y: punkte[3] - punkte[1],
+        };
+
+        let abs = Math.sqrt(vektor.x ** 2 + vektor.y ** 2);
+        //console.log("abs: " + abs);
+        return abs;
+      }
+
+      function getSkalar2DVektor(arrow1, arrow2) {
+        let punkteV1 = arrow1.getPoints();
+        let punkteV2 = arrow2.getPoints();
+
+        let vektor1 = {
+          x: punkteV1[2] - punkteV1[0],
+          y: punkteV1[3] - punkteV1[1],
+        };
+
+        let vektor2 = {
+          x: punkteV2[2] - punkteV2[0],
+          y: punkteV2[3] - punkteV2[1],
+        };
+
+        //console.log(vektor2);
+
+        let skalar = vektor1.x * vektor2.x + vektor1.y * vektor2.y;
+        //console.log("skalr: " + skalar);
+        return skalar;
+      }
+
+      function getAngleToKOSimStutzVektor(arrow) {
+        let p = arrow.getPoints();
+        let x = p[0];
+        let y = p[1];
+
+        //anpassung an KOS im Ausgangspunkt
+
+        let point = {
+          x: 0,
+          y: 0,
+        };
+
+        if (p[2] > x) {
+          point.x = Math.abs(p[2] - x);
+        } else {
+          point.x = -1 * Math.abs(p[2] - x);
+        }
+        if (p[3] > y) {
+          point.y = -1 * Math.abs(y - p[3]);
+        } else {
+          point.y = Math.abs(p[3] - y);
+        }
+
+        let angle = radTodeg(Math.atan2(point.y, point.x));
+        //console.log(point.x);
+        //console.log(point.y);
+        //console.log("Imagine Angle: " + angle);
+        return angle;
+      }
+
+      function radTodeg(x) {
+        let deg = (x / Math.PI) * 180;
+
+        //console.log("Angle in DEG: " + deg + "°");
+
+        return deg;
+      }
+    </script>
   </head>
   <body>
     <div id="container"></div>
 
-    <form action="">
+    <form id="system" action="" onchange="setChoosen()">
       <label for="pt1">PT1</label>
-      <input id="pt1" type="radio" name="foo" value="0" />
+      <input id="pt1" type="radio" name="foo" value="0" checked />
       <br />
       <label for="pt2s">PT2s</label>
       <input id="pt2s" type="radio" name="foo" value="1" />
@@ -45,26 +177,93 @@
       <input id="pt1tt" type="radio" name="foo" value="10" />
     </form>
 
-    <label for="k1">K1</label>
-    <input id="k1" type="range" min="0" max="50" step="0.1" value="5" />
+    <form id="system" action="" onchange="setParam()">
+      <label for="k1">K1</label>
+      <input
+        id="k1"
+        type="range"
+        min="0"
+        max="50"
+        step="0.1"
+        value="20"
+        oninput="this.nextElementSibling.value = this.value"
+      />
+      <output>20</output>
 
-    <label for="t1">T1</label>
-    <input id="t1" type="range" min="0" max="25" step="0.1" value="5" />
+      <label for="t1">T1</label>
+      <input
+        id="t1"
+        type="range"
+        min="0"
+        max="25"
+        step="0.1"
+        value="1"
+        oninput="this.nextElementSibling.value = this.value"
+      />
+      <output>1</output>
+      <br />
 
-    <label for="t2">T2</label>
-    <input id="t2" type="range" min="0" max="25" step="0.1" value="5" />
+      <label for="t2">T2</label>
+      <input
+        id="t2"
+        type="range"
+        min="0"
+        max="25"
+        step="0.1"
+        value="1"
+        oninput="this.nextElementSibling.value = this.value"
+      />
+      <output>1</output>
 
-    <label for="tn">Tn</label>
-    <input id="pt1" type="range" min="0" max="25" step="0.1" value="5" />
+      <label for="tn">Tn</label>
+      <input
+        id="pt1"
+        type="range"
+        min="0"
+        max="25"
+        step="0.1"
+        value="3.5"
+        oninput="this.nextElementSibling.value = this.value"
+      />
+      <output>3.5</output>
+      <br />
 
-    <label for="td">TD</label>
-    <input id="td" type="range" min="0" max="25" step="0.1" value="5" />
+      <label for="td">TD</label>
+      <input
+        id="td"
+        type="range"
+        min="0"
+        max="25"
+        step="0.1"
+        value="9"
+        oninput="this.nextElementSibling.value = this.value"
+      />
+      <output>9</output>
 
-    <label for="tt">Tt</label>
-    <input id="tt" type="range" min="0" max="25" step="0.1" value="5" />
+      <label for="tt">Tt</label>
+      <input
+        id="tt"
+        type="range"
+        min="0"
+        max="25"
+        step="0.1"
+        value="4"
+        oninput="this.nextElementSibling.value = this.value"
+      />
+      <output>4</output>
 
-    <label for="d">D</label>
-    <input id="d" type="range" min="0" max="4" step="0.1" value="0.4" />
+      <label for="d">D</label>
+      <input
+        id="d"
+        type="range"
+        min="0"
+        max="4"
+        step="0.1"
+        value="0.4"
+        oninput="this.nextElementSibling.value = this.value"
+      />
+      <output>0.4</output>
+    </form>
 
     <script>
       var Width = 500;
@@ -143,14 +342,6 @@
 
       layer.draw();
 
-      let K1 = 20;
-      let T1 = 1;
-      let T2 = 1;
-      let Tn = 3.5;
-      let D = 0.4;
-      let TD = 9;
-      let Tt = 4;
-
       let speed = 0.01;
       let w = 0;
 
@@ -167,6 +358,20 @@
         strokeWidth: 0.1,
       });
       layer.add(pointer);
+
+      var complexText = new Konva.Text({
+        x: -10,
+        y: -15,
+        text: "",
+        fontSize: 1,
+        fontFamily: "Calibri",
+        fill: "#555",
+        width: 20,
+        padding: 2,
+        align: "center",
+        draggable: true,
+      });
+      layer.add(complexText);
 
       var redLine = new Konva.Line({
         points: [],
@@ -187,7 +392,113 @@
         }
         const points = redLine.getPoints();
 
-        //PT1 ✓
+        let K1 = params[0];
+        let T1 = params[1];
+        let T2 = params[2];
+        let Tn = params[3];
+        let TD = params[4];
+        let Tt = params[5];
+        let D = params[6];
+
+        switch (
+          aktiveSystem.findIndex(function (el) {
+            return el === true;
+          })
+        ) {
+          case 0:
+            //PT1 ✓
+            endPoint.x = K1 / (1 + w * w * T1 * T1);
+            endPoint.y = (-w * T1 * K1) / (1 + w * w * T1 * T1);
+            break;
+          case 1:
+            //PT2s ✓
+            //((-(K1 (T1² w² - 1))) / (T1⁴ w⁴ + 2 (2D² - 1) T1² w² + 1), -2 D T1 w K1 / (T1⁴ w⁴ + 2 (D² - 1) T1² w² + 1))
+            endPoint.x =
+              -(K1 * (T1 ** 2 * w ** 2 - 1)) /
+              (T1 ** 4 * w ** 4 + 2 * (2 * D ** 2 - 1) * T1 ** 2 * w ** 2 + 1);
+            endPoint.y =
+              -(2 * D * T1 * K1 * w) /
+              (T1 ** 4 * w ** 4 + 2 * (2 * D ** 2 - 1) * T1 ** 2 * w ** 2 + 1);
+            break;
+          case 2:
+            //PT2ns ✓
+            endPoint.x =
+              (-K1 * (T1 * T2 * w ** 2 - 1)) /
+              (T1 ** 2 * T2 ** 2 * w ** 4 + (T1 ** 2 + T2 ** 2) * w ** 2 + 1);
+            endPoint.y =
+              (-K1 * (T1 + T2) * w) /
+              (T1 ** 2 * T2 ** 2 * w ** 4 + (T1 ** 2 + T2 ** 2) * w ** 2 + 1);
+            break;
+          case 3:
+            //IPT1ns ✓
+            //(-T1 K1 / (Tn (T1² w² + 1)), -(K1 / (Tn w (T1² w² + 1))))
+            endPoint.x = (-T1 * K1) / (Tn * (T1 ** 2 * w ** 2 + 1));
+            endPoint.y = -(K1 / (Tn * w * (T1 ** 2 * w ** 2 + 1)));
+            break;
+          case 4:
+            //IPT2ns ✓
+            //((-K1 Tn T1 w² - K1 Tn w² T2) / ((-Tn T1 w² - Tn w² T2)² - (-Tn T1 w³ T2 + Tn w) (Tn T1 w³ T2 - Tn w)), (K1 Tn T1 w³ T2 - K1 Tn w) / ((-Tn T1 w² - Tn w² T2)² - (-Tn T1 w³ T2 + Tn w) (Tn T1 w³ T2 - Tn w)))
+            endPoint.x =
+              (-K1 * Tn * T1 * w ** 2 - K1 * Tn * w ** 2 * T2) /
+              ((-Tn * T1 * w ** 2 - Tn * w ** 2 * T2) ** 2 -
+                (-Tn * T1 * w ** 3 * T2 + Tn * w) *
+                  (Tn * T1 * w ** 3 * T2 - Tn * w));
+            endPoint.y =
+              (K1 * Tn * T1 * w ** 3 * T2 - K1 * Tn * w) /
+              ((-Tn * T1 * w ** 2 - Tn * w ** 2 * T2) ** 2 -
+                (-Tn * T1 * w ** 3 * T2 + Tn * w) *
+                  (Tn * T1 * w ** 3 * T2 - Tn * w));
+            break;
+          case 5:
+            //I ✓
+            endPoint.x = 0;
+            endPoint.y = -K1 / w;
+            break;
+          case 6:
+            //D ✓
+            endPoint.x = 0;
+            endPoint.y = K1 * w;
+            break;
+          case 7:
+            //DPT1 ✓
+            endPoint.x = (K1 * TD * w ** 2 * T1) / (1 + T1 ** 2 * w ** 2);
+            endPoint.y = (K1 * TD * w) / (1 + T1 ** 2 * w ** 2);
+            break;
+          case 8:
+            //PTt ✓
+            endPoint.x = K1 * Math.cos(Tt * w);
+            endPoint.y = K1 * Math.sin(Tt * w);
+            break;
+          case 9:
+            //PT3ns ✓
+            //((-K1 ((T1 (T2 + Tn) + T2 Tn) w² - 1)) / ((Tn² w² + 1) (T2² w² + 1) (T1² w² + 1)), K1 w (T1 T2 Tn w² - T1 - T2 - Tn)) / ((Tn² w² + 1) (T2² w² + 1) (T1² w² + 1))
+            endPoint.x =
+              (-K1 * ((T1 * (T2 + Tn) + T2 * Tn) * w ** 2 - 1)) /
+              ((Tn ** 2 * w ** 2 + 1) *
+                (T2 ** 2 * w ** 2 + 1) *
+                (T1 ** 2 * w ** 2 + 1));
+            endPoint.y =
+              (K1 * w * (T1 * T2 * Tn * w ** 2 - T1 - T2 - Tn)) /
+              ((Tn ** 2 * w ** 2 + 1) *
+                (T2 ** 2 * w ** 2 + 1) *
+                (T1 ** 2 * w ** 2 + 1));
+            break;
+          case 10:
+            //PT1Tt ✓
+            //((PTTta K1 + PTTtb K1 w T1) / (1 + w² T1²), (-PTTta K1 w T1 + PTTtb K1) / (1 + w² T1²))
+            endPoint.x =
+              (Math.cos(-w * Tt) * K1 + Math.sin(-w * Tt) * K1 * w * T1) /
+              (1 + w ** 2 * T1 ** 2);
+            endPoint.y =
+              (-Math.cos(-w * Tt) * K1 * w * T1 + Math.sin(-w * Tt) * K1) /
+              (1 + w ** 2 * T1 ** 2);
+            break;
+
+          default:
+            break;
+        }
+
+        /*  //PT1 ✓
         endPoint.x = K1 / (1 + w * w * T1 * T1);
         endPoint.y = (-w * T1 * K1) / (1 + w * w * T1 * T1);
 
@@ -261,9 +572,9 @@
         endPoint.x = 0;
         endPoint.y = K1 * w;
 
-        //Tt ✓
+        //PTt ✓
         endPoint.x = K1 * Math.cos(Tt * w);
-        endPoint.y = K1 * Math.sin(Tt * w);
+        endPoint.y = K1 * Math.sin(Tt * w); */
 
         endPoint.y = endPoint.y * -1; //flip y axis
         let distance = Math.sqrt(
@@ -275,15 +586,42 @@
           distance = 10;
         }
 
-        if (distance > 1.2 && speed > 0) {
+        if (distance > 5 && speed > 0) {
           speed = speed - 0.000001;
         }
 
-        if (distance < 0.8) {
+        if (distance < 3) {
           speed += 0.0001; //+ 0.1 / distance; //scale speed by distance not for PT1Tt
         }
 
-        if (redLine.getPoints().length > 10000 || distance < 0.015 || !distance)
+        /*     complexText.text(
+          "Speed: " +
+            speed.toFixed(2) +
+            " m/s\n" +
+            "Distance: " +
+            distance.toFixed(2) +
+            " m"
+        ); */
+
+        complexText.text(
+          "w: " +
+            w.toFixed(2) +
+            " Hz\n" +
+            "Abs Vektor: " +
+            getABS2DVektor(pointer).toFixed(2) +
+            " div\n" +
+            "Angle Vektor: " +
+            getAngleToKOSimStutzVektor(pointer).toFixed(2) +
+            " °\n"
+        );
+
+        /* console.log(`Ⓧs: `, speed);
+        console.log(`Ⓧd: `, distance); */
+
+        if (
+          redLine.getPoints().length > 50000 /* || distance < 0.015 */ ||
+          !distance
+        )
           return;
 
         pointer.setAttr("points", [0, 0, endPoint.x, endPoint.y]);
@@ -295,7 +633,7 @@
 
       anim.start();
 
-      var zoomLevel = 5;
+      var zoomLevel = 1;
 
       layer.on("wheel", function (e) {
         zoomLevel = e.evt.deltaY < 0 ? zoomLevel + 0.1 : zoomLevel - 0.1;
@@ -306,26 +644,26 @@
       });
 
       /* layer.on("mouseenter", function () {
-        layer.scale({
-          x: zoomLevel,
-          y: zoomLevel,
-        });
-      });
+              layer.scale({
+                x: zoomLevel,
+                y: zoomLevel,
+              });
+            });
 
-      layer.on("mousemove", function (e) {
-        var pos = stage.getPointerPosition();
-        layer.x((-pos.x / Width) * 50);
-        layer.y((-pos.y / Height) * 50);
-      });
+            layer.on("mousemove", function (e) {
+              var pos = stage.getPointerPosition();
+              layer.x((-pos.x / Width) * 50);
+              layer.y((-pos.y / Height) * 50);
+            });
 
-      layer.on("mouseleave", function () {
-        layer.x(0);
-        layer.y(0);
-        layer.scale({
-          x: 1,
-          y: 1,
-        });
-      }); */
+            layer.on("mouseleave", function () {
+              layer.x(0);
+              layer.y(0);
+              layer.scale({
+                x: 1,
+                y: 1,
+              });
+            }); */
     </script>
   </body>
 </html>
